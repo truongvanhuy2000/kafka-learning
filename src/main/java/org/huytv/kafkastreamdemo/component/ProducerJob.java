@@ -20,12 +20,11 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class ProducerJob {
     private final KafkaTemplate<String, SavedFileDTO> kafkaTemplate;
-    private String TOPIC = "test-topic-01";
+    private String TOPIC = "test-topic";
 
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedRate = 500, timeUnit = TimeUnit.MILLISECONDS)
     public void produce() {
         UUID uuid = UUID.randomUUID();
-
         kafkaTemplate.send(TOPIC, uuid.toString(),
             SavedFileDTO.builder()
                 .id(uuid.toString())
@@ -40,12 +39,9 @@ public class ProducerJob {
     private LocalDateTime randomDateTime() {
         LocalDateTime start = LocalDateTime.of(2020, 1, 1, 0, 0);
         LocalDateTime end = LocalDateTime.now();
-
         long startEpoch = start.toEpochSecond(ZoneOffset.UTC);
         long endEpoch = end.toEpochSecond(ZoneOffset.UTC);
-
         long randomEpoch = ThreadLocalRandom.current().nextLong(startEpoch, endEpoch);
-
         return LocalDateTime.ofEpochSecond(randomEpoch, 0, ZoneOffset.UTC);
     }
 }
