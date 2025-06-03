@@ -1,6 +1,7 @@
 package org.huytv.kafkastreamdemo.component;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.huytv.kafkastreamdemo.model.SavedFileDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -16,22 +17,22 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@EnableScheduling
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class ProducerJob {
-    private final KafkaTemplate<String, SavedFileDTO> kafkaTemplate;
-    private String TOPIC = "test-topic";
+public class FileProducer {
+    private final KafkaTemplate<String, SavedFileDTO> savedFileKafkaTemplate;
+    private static final Random random = new Random();
+    private final NewTopic fileTopic;
 
-    @Scheduled(fixedRate = 500, timeUnit = TimeUnit.MILLISECONDS)
+    @Scheduled(fixedRate = 5000, timeUnit = TimeUnit.MILLISECONDS)
     public void produce() {
         UUID uuid = UUID.randomUUID();
-        kafkaTemplate.send(TOPIC, uuid.toString(),
+        savedFileKafkaTemplate.send(fileTopic.name(), uuid.toString(),
             SavedFileDTO.builder()
                 .id(uuid.toString())
-                .size(new Random().nextInt(1_000_000))
+                .size(random.nextInt(1_000_000))
                 .updatedDate(randomDateTime())
                 .fileName("file-" + uuid + ".txt")
-                .userID(new Random().nextInt(10))
+                .userID(random.nextInt(10))
                 .build()
         );
     }
