@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: KafkaStreamDemo
+  cloud:
+    stream:
+      function:
+        bindings:
+          shipmentProcess-in-0:
+            destination: invoice-topic
+            content-type: application/json
+#          shipmentProcess-out-0:
+#            destination: SHIPMENT
+#            content-type: application/json
+      kafka:
+        binder:
+          brokers: localhost:9092,localhost:9093
+          configuration:
+            commit.interval.ms: 100
+
+logging:
+  level:
+    org.springframework.cloud.stream: DEBUG
+#    org.apache.kafka.streams: DEBUG

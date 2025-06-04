@@ -20,7 +20,7 @@ public class InvoiceProducer {
     private final KafkaTemplate<String, InvoiceDTO> invoiceKafkaTemplate;
     private final NewTopic invoiceTopic;
 
-    @Scheduled(fixedRate = 5000, timeUnit = TimeUnit.MILLISECONDS)
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
     public void produce() {
         UUID uuid = UUID.randomUUID();
         invoiceKafkaTemplate.send(invoiceTopic.name(), uuid.toString(), generateRandomInvoice(uuid.toString()));

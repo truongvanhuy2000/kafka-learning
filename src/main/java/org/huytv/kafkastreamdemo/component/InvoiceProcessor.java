@@ -13,16 +13,21 @@ import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
 import org.huytv.kafkastreamdemo.model.InvoiceDTO;
 import org.huytv.kafkastreamdemo.model.MaskedInvoiceDTO;
+import org.huytv.kafkastreamdemo.model.NotificationDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.stereotype.Component;
+
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.huytv.kafkastreamdemo.configuration.KafkaConfiguration.STRING_SERDE;
 
-@Component
+@Configuration
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class InvoiceProcessor {
     private final NewTopic shipmentTopic;
@@ -40,43 +45,66 @@ public class InvoiceProcessor {
         new JsonDeserializer<>(MaskedInvoiceDTO.class)
     );
 
-    @Bean
-    public KStream<String, InvoiceDTO> shipmentProcessor(@Qualifier("myKStreamBuilder") StreamsBuilder streamsBuilder) {
-        KStream<String, InvoiceDTO> messageStream = streamsBuilder
-            .stream(invoiceTopic.name(), Consumed.with(STRING_SERDE, INVOICE_DTO_SERDE))
-            .filter((key, value) -> value.getDeliveryType().equalsIgnoreCase("HOME-DELIVERY"));
-        messageStream.to(shipmentTopic.name(), Produced.with(Serdes.String(), INVOICE_DTO_SERDE));
-        return messageStream;
-    }
+    private static final Serde<NotificationDTO> NOTIFICATION_DTO_SERDE = Serdes.serdeFrom(
+        new JsonSerializer<>(),
+        new JsonDeserializer<>(NotificationDTO.class)
+    );
 
-    @Bean
-    public KStream<String, String> loyaltyProcessor(@Qualifier("myKStreamBuilder") StreamsBuilder streamsBuilder) {
-        StoreBuilder<KeyValueStore<String, Double>> kvStoreBuilder = Stores.keyValueStoreBuilder(
-            Stores.inMemoryKeyValueStore("reward-store"),
-            Serdes.String(),
-            Serdes.Double()
-        );
-        streamsBuilder.addStateStore(kvStoreBuilder);
+//    @Bean
+//    public KStream<String, InvoiceDTO> shipmentProcessor(@Qualifier("myKStreamBuilder") StreamsBuilder streamsBuilder) {
+//        KStream<String, InvoiceDTO> messageStream = streamsBuilder
+//            .stream(invoiceTopic.name(), Consumed.with(STRING_SERDE, INVOICE_DTO_SERDE))
+//            .filter((key, value) -> value.getDeliveryType().equalsIgnoreCase("HOME-DELIVERY"));
+//        messageStream.to(shipmentTopic.name(), Produced.with(Serdes.String(), INVOICE_DTO_SERDE));
+//        return messageStream;
+//    }
 
-        KStream<String, String> messageStream = streamsBuilder
-            .stream(invoiceTopic.name(), Consumed.with(STRING_SERDE, INVOICE_DTO_SERDE))
-            .filter((key, value) -> value.getDeliveryType().equalsIgnoreCase("PRIME"))
-                .mapValues(InvoiceDTO::getInvoiceNumber);
-        messageStream.to(loyaltyTopic.name(), Produced.with(Serdes.String(), Serdes.String()));
-        return messageStream;
-    }
+//    @Bean
+//    public Function<KStream<String, InvoiceDTO>, KStream<String, InvoiceDTO>> shipmentProcess() {
+//        return messageStream -> messageStream
+//            .filter((key, value) -> value.getDeliveryType().equalsIgnoreCase("HOME-DELIVERY"))
+//            .peek((key, value) -> System.out.println("Processing shipment for invoice: " + value.getInvoiceNumber()));
+//    }
 
-    @Bean
-    public KStream<String, MaskedInvoiceDTO> hadoopProcessor(@Qualifier("myKStreamBuilder") StreamsBuilder streamsBuilder) {
-        KStream<String, MaskedInvoiceDTO> messageStream = streamsBuilder
-            .stream(invoiceTopic.name(), Consumed.with(STRING_SERDE, INVOICE_DTO_SERDE))
-            .mapValues((value) -> MaskedInvoiceDTO.builder()
-                .invoiceNumber(value.getInvoiceNumber())
-                .createdTime(value.getCreatedTime())
-                .posId(value.getStoreID())
-                .storeId(value.getStoreID())
-                .build());
-        messageStream.to(hadoopTopic.name(), Produced.with(Serdes.String(), MASKED_INVOICE_DTO_SERDE));
-        return messageStream;
-    }
+//    @Bean
+//    public KStream<String, NotificationDTO> loyaltyProcessor(@Qualifier("myKStreamBuilder") StreamsBuilder streamsBuilder) {
+//        StoreBuilder<KeyValueStore<String, Double>> kvStoreBuilder = Stores.keyValueStoreBuilder(
+//            Stores.inMemoryKeyValueStore("reward-store"),
+//            Serdes.String(),
+//            Serdes.Double()
+//        );
+//        streamsBuilder.addStateStore(kvStoreBuilder);
+//
+//        KStream<String, NotificationDTO> messageStream = streamsBuilder
+//            .stream(invoiceTopic.name(), Consumed.with(STRING_SERDE, INVOICE_DTO_SERDE))
+//            .filter((key, value) -> value.getDeliveryType().equalsIgnoreCase("PRIME"))
+//            .mapValues(it -> {
+//                double earnedPoints = it.getTotalValue() * 0.1; // 10% of total amount
+//                double totalLoyaltyPoints = 0 + earnedPoints;
+//                NotificationDTO notification = NotificationDTO.builder()
+//                    .invoiceNumber(it.getInvoiceNumber())
+//                    .customerCardNo(UUID.randomUUID().toString())
+//                    .totalAmount(it.getTotalValue())
+//                    .earnedLoyaltyPoints(earnedPoints)
+//                    .totalLoyaltyPoints(totalLoyaltyPoints)
+//                    .build();
+//                return notification;
+//            });
+//        messageStream.to(loyaltyTopic.name(), Produced.with(Serdes.String(), NOTIFICATION_DTO_SERDE));
+//        return messageStream;
+//    }
+//
+//    @Bean
+//    public KStream<String, MaskedInvoiceDTO> hadoopProcessor(@Qualifier("myKStreamBuilder") StreamsBuilder streamsBuilder) {
+//        KStream<String, MaskedInvoiceDTO> messageStream = streamsBuilder
+//            .stream(invoiceTopic.name(), Consumed.with(STRING_SERDE, INVOICE_DTO_SERDE))
+//            .mapValues((value) -> MaskedInvoiceDTO.builder()
+//                .invoiceNumber(value.getInvoiceNumber())
+//                .createdTime(value.getCreatedTime())
+//                .posId(value.getStoreID())
+//                .storeId(value.getStoreID())
+//                .build());
+//        messageStream.to(hadoopTopic.name(), Produced.with(Serdes.String(), MASKED_INVOICE_DTO_SERDE));
+//        return messageStream;
+//    }
 }

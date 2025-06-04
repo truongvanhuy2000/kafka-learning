@@ -51,19 +51,19 @@ public class KafkaConfiguration {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    @Bean
-    KafkaStreamsConfiguration kStreamsConfig() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-app-01");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, STRING_SERDE.getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, STRING_SERDE.getClass());
-//        props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "1000");
-        return new KafkaStreamsConfiguration(props);
-    }
-
-    @Bean
-    public FactoryBean<StreamsBuilder> myKStreamBuilder(@Qualifier("kStreamsConfig") KafkaStreamsConfiguration streamsConfig) {
-        return new StreamsBuilderFactoryBean(streamsConfig);
-    }
+//    @Bean
+//    KafkaStreamsConfiguration kStreamsConfig() {
+//        Map<String, Object> props = new HashMap<>();
+//        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams-app-01");
+//        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+//        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, STRING_SERDE.getClass());
+//        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, STRING_SERDE.getClass());
+////        props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "1000");
+//        return new KafkaStreamsConfiguration(props);
+//    }
+//
+//    @Bean
+//    public FactoryBean<StreamsBuilder> myKStreamBuilder(@Qualifier("kStreamsConfig") KafkaStreamsConfiguration streamsConfig) {
+//        return new StreamsBuilderFactoryBean(streamsConfig);
+//    }
 }
